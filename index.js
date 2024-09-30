@@ -12,9 +12,9 @@ app.use(bodyParser.json());
 app.get('/', (req, res) => {
   res.send('Welcome to the Authentication API!');
 });
-
 // Use the auth routes
 app.use('/api/auth', authRoutes);
+app.use('/baseApi/users', userRoutes); // Use user routes
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
