@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const authRoutes = require('./routes/authRoutes');
+const productSearchRoutes = require('./routes/productSearchRoutes');
 require('dotenv').config();
 
 const app = express();
@@ -15,6 +16,9 @@ app.get('/', (req, res) => {
 
 // Use the auth routes
 app.use('/baseApi/auth', authRoutes);
+
+// Use the product serach routes
+app.use('/api', productSearchRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
