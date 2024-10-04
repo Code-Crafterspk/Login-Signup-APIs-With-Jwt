@@ -2,38 +2,69 @@
 
 const { db } = require('../config/firebaseConfig');
 
-// Search for products by query (title, category, price range, etc.)
+// Search products based on query (e.g., title, category, description)
 exports.searchProducts = async (req, res) => {
   try {
-    const { query, category, minPrice, maxPrice } = req.query;
+    const queryParam = req.query.query.toLowerCase();
+    
+    const productsSnapshot = await db.collection('products').get();
+    const matchingProducts = [];
 
-    let productsRef = db.collection('products');
-    let queryRef = productsRef;
+    productsSnapshot.forEach(doc => {
+      const product = doc.data();
+      // Check if the query matches the title, category, or description
+      if (
+        product.title.toLowerCase().includes(queryParam) ||
+        product.category.name.toLowerCase().includes(queryParam) ||
+        product.description.toLowerCase().includes(queryParam)
+      ) {
+        matchingProducts.push(product);
+      }
+    });
 
-    // Search by title (case-insensitive)
-    if (query) {
-      queryRef = queryRef.where('title', '>=', query).where('title', '<=', query + '\uf8ff');
-    }
-
-    // Filter by category
-    if (category) {
-      queryRef = queryRef.where('category.name', '==', category);
-    }
-
-    // Filter by price range
-    if (minPrice && maxPrice) {
-      queryRef = queryRef.where('price', '>=', parseFloat(minPrice)).where('price', '<=', parseFloat(maxPrice));
-    }
-
-    const snapshot = await queryRef.get();
-    const products = snapshot.docs.map(doc => doc.data());
-
-    if (products.length > 0) {
-      return res.status(200).json({ status: 'success', data: products });
+    if (matchingProducts.length > 0) {
+      return res.status(200).json({
+        status: 'success',
+        data: matchingProducts
+      });
     } else {
-      return res.status(404).json({ status: 'error', message: 'No products found matching your search criteria.' });
+      return res.status(404).json({
+        status: 'error',
+        message: 'No products found matching the query.'
+      });
     }
   } catch (error) {
-    return res.status(500).json({ status: 'error', message: 'Failed to search products', error: error.message });
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to search products',
+      error: error.message
+    });
+  }
+};
+
+// Get specific product by ID
+exports.getProductById = async (req, res) => {
+  try {
+    const { product_id } = req.params;
+    
+    const productDoc = await db.collection('products').doc(product_id).get();
+
+    if (productDoc.exists) {
+      return res.status(200).json({
+        status: 'success',
+        data: productDoc.data()
+      });
+    } else {
+      return res.status(404).json({
+        status: 'error',
+        message: `Product with ID ${product_id} not found.`
+      });
+    }
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Failed to retrieve product details',
+      error: error.message
+    });
   }
 };

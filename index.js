@@ -17,8 +17,10 @@ app.get('/', (req, res) => {
 // Use the auth routes
 app.use('/baseApi/auth', authRoutes);
 
-// Use the product serach routes
+// Use the auth and product search routes
+app.use('/api/auth', authRoutes);
 app.use('/api', productSearchRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
